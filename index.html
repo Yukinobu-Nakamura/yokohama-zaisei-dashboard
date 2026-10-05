@@ -17,8 +17,8 @@ header h1{margin:0;font-size:20px;font-weight:800;letter-spacing:.02em}
 header .sub{opacity:.92;font-size:13.5px;margin-top:4px}
 .topbar{position:sticky;top:0;z-index:40;background:#fff;border-bottom:1px solid var(--line);padding:8px 16px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .tabs{display:flex;gap:6px;flex-wrap:wrap}
-.tabs button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:10px 16px;font-size:15px;font-weight:700;cursor:pointer;color:var(--ink);white-space:nowrap}
-.tabs button.on{background:var(--p);color:#fff;border-color:var(--p)}
+.tabs button,.tabs span{border:1px solid var(--line);background:#fff;border-radius:999px;padding:10px 16px;font-size:15px;font-weight:700;color:var(--ink);white-space:nowrap;display:inline-block}
+.tabs button.on,.tabs span.on{background:var(--p);color:#fff;border-color:var(--p)}
 .bk{display:inline-block;margin:0 0 10px;background:#fff;border:1.5px solid var(--p);color:var(--p);border-radius:10px;padding:10px 16px;font-size:15px;font-weight:800;cursor:pointer}
 .bk:hover{background:var(--p);color:#fff}
 .wrap{max-width:1240px;margin:0 auto;padding:16px}
@@ -83,13 +83,13 @@ footer{max-width:1240px;margin:8px auto 30px;padding:0 16px;color:var(--muted);f
  <div class="sub">総務省「決算カード」・横浜市財政局公表資料から作成（普通会計決算・単位は億円に統一・恒等式検証済み）｜ 作成・データ確認日: 2026-10-05 ｜ 本ページは公開データの可視化であり、特定の候補者・政党への投票を呼びかけるものではありません</div>
 </header>
 <div class="topbar">
- <div class="tabs"><button class="on">💹 財政ダッシュボード</button></div>
+ <div class="tabs"><span class="on">💹 財政ダッシュボード</span></div>
  <button class="bk" id="fsbtn" style="margin:0;margin-left:auto" title="文字サイズ切替">文字大</button>
 </div>
 <div class="wrap">
  <div id="panel-fin" class="panel"></div>
 </div>
-<footer>出典: 総務省「決算カード」（<span style="word-break:break-all">https://www.soumu.go.jp/iken/zaisei/card.html</span>）／横浜市財政局「決算カード」「普通会計決算の概要」「IR資料」「予算案資料編」「財政ビジョン」「長期財政推計」ほか（city.yokohama.lg.jp）。政府標準利用規約・PDL1.0（公共データ利用規約）に基づき出典明記のうえ利用。「要再確認」「未確認」と付した数値は一次資料での再確認前の参考値です。誤りのご指摘はリポジトリのIssueまで。</footer>
+<footer>出典: 総務省「市町村別決算カード」（<span style="word-break:break-all">https://www.soumu.go.jp/iken/zaisei/card.html</span>）を加工して作成（政府標準利用規約〔第2.0版〕・公共データ利用規約〔PDL1.0〕に基づく利用）／横浜市財政局「決算カード」「普通会計決算の概要」「IR資料」「予算案資料編」「財政ビジョン」「長期財政推計」ほか（city.yokohama.lg.jp）の数値データを利用（数値データ・簡単な表・グラフ等は著作権の保護対象外である旨を市サイトが明記）。「要再確認」「未確認」と付した数値は一次資料での再確認前の参考値です。作成: Yukinobu-Nakamura ｜ 誤りのご指摘は <span style="word-break:break-all">https://github.com/Yukinobu-Nakamura/yokohama-zaisei-dashboard</span> の Issue へ。</footer>
 <div class="tip" id="tip"></div>
 <script>
 const DATA={
@@ -149,8 +149,8 @@ const DATA={
   suikei:[{name:"2030年度",v:-308,hl:true},{name:"2040年度",v:-661,hl:true},{name:"2065年度",v:-1663,hl:true}],
   kpis:[
    {lab:"歳出総額（普通会計・R6/2024年度決算）",val:"2兆258",unit:"億円",chg:"コロナ期ピーク2.37兆円（R2）から平常化"},
-   {lab:"市税収入（R6決算）",val:"8,937",unit:"億円",chg:"15年間で最高・3年連続増（2010年度比+28%）"},
-   {lab:"市債残高（普通会計・R6末）",val:"2兆4,601",unit:"億円",chg:"市指標「一般会計が対応する借入金残高」は2兆9,492億円（前年比▲894億円）"},
+   {lab:"市税収入（R6決算）",val:"8,937",unit:"億円",chg:"15年間で最高・3年連続増（2010年度比 約+28%）"},
+   {lab:"市債残高（普通会計・R6末）",val:"2兆4,601",unit:"億円",chg:"市指標「一般会計が対応する借入金残高」はR6末2兆9,492億円（市公表情報・一次資料は要再確認）"},
    {lab:"経常収支比率（R6）",val:"99.0",unit:"%",chg:"100%近傍で硬直化が高止まり"},
    {lab:"実質公債費比率 / 将来負担比率（R6）",val:"9.2% / 114.9%",unit:"",chg:"早期健全化基準（25% / 400%）を大幅に下回り改善傾向"},
    {lab:"基金残高（普通会計・R6末）",val:"710",unit:"億円",chg:"財政調整基金463億+特定目的基金247億（決算カードベース）"},
@@ -158,18 +158,18 @@ const DATA={
   ],
   notes:[
    "単位: 億円（原典は全年度とも千円単位＝総務省 市町村別決算カード。千円÷100,000で換算・小数第1位まで保持。全15年が同一出典・同一精度）。",
-   "データは総務省「市町村別決算カード」神奈川県版の横浜市分15年（平成22〜令和6年度）を機械抽出し、恒等式検証（歳入款Σ=歳入合計・性質別Σ=歳出合計・義務的経費=人件費+扶助費+公債費・実質収支=歳入歳出差引−繰越財源、全15年で残差ゼロ）と隣接年の連続性照合を通過したもの。",
+   "データは総務省「市町村別決算カード」神奈川県版の横浜市分15年（平成22〜令和6年度）を機械抽出し、恒等式検証（歳入款Σ=歳入合計・性質別Σ=歳出合計・義務的経費=人件費+扶助費+公債費・実質収支=歳入歳出差引−繰越財源、全15年で残差ゼロ）と隣接年の連続性照合（差異3件・いずれも0.05億円未満で表示精度に影響なし）を実施したもの。",
    "実質収支は決算カード（普通会計）ベース。横浜市が決算発表等で用いる一般会計ベースの実質収支とは会計の範囲が異なるため、数値は一致しない（例: 2017年度は普通会計130.6億円）。",
    "基金は決算カード「積立金現在高」（普通会計・財政調整基金/減債基金/その他特定目的基金）ベース。横浜市の減債基金（満期一括償還用）は決算統計上ここに計上されず全年「—」。市IR資料の「基金残高」（2023年度末3,638.8億円）は全会計・全基金ベースの別定義のため、本ページの系列と接続・比較はできない。",
-   "長期財政推計（令和7年12月版）の収支不足額は市公式解説ページで確認（一次PDF本文は要再確認）。旧推計（令和4年度版）は2030年度▲502億・2040年度▲823億・2065年度▲1,752億円＝最新版で不足幅はやや縮小。",
-   "政令市比較は横浜市財政局公表の6都市（旧5大市+川崎）比較。20政令市全体の比較は未採用（実質公債費比率は20市中16位・将来負担比率15位＝R5決算・市公表情報、一次PDF要再確認）。",
-   "公会計（統一的基準の財務書類＝BS/PL/CF）・歳入の款別フル明細（28款）・目的別歳出の時系列は本ページでは未収録（横浜市公表の「財務書類」「財政状況資料集」で確認可能）。"
+   "長期財政推計（令和7年12月版）の収支不足額は報道・解説記事からの引用値（市の一次資料は未確認）。旧推計（令和4年度版）は2030年度▲502億・2040年度▲823億・2065年度▲1,752億円＝最新版で不足幅はやや縮小。",
+   "政令市比較は横浜市財政局公表の6都市（旧5大市+川崎）比較。20政令市全体の比較は一次資料での確認が未了のため未収録。",
+   "公会計（統一的基準の財務書類＝BS/PL/CF）・歳入の款別フル明細（年度により25〜28款）・目的別歳出の時系列は本ページでは未収録（横浜市公表の「財務書類」「財政状況資料集」で確認可能）。"
   ]
  }, };
 const tip=document.getElementById('tip');
 function showTip(e,html){tip.innerHTML=html;tip.style.opacity=1;tip.style.left=Math.min(e.clientX+12,window.innerWidth-260)+'px';tip.style.top=(e.clientY-10)+'px';}
 function hideTip(){tip.style.opacity=0;}
-function bindTips(el){el.querySelectorAll('[data-tip]').forEach(n=>{n.addEventListener('mousemove',e=>showTip(e,n.dataset.tip));n.addEventListener('mouseleave',hideTip);});}
+function bindTips(el){el.querySelectorAll('[data-tip]').forEach(n=>{n.addEventListener('mousemove',e=>showTip(e,n.dataset.tip));n.addEventListener('pointerdown',e=>showTip(e,n.dataset.tip),{passive:true});n.addEventListener('mouseleave',hideTip);});document.addEventListener('pointerdown',e=>{if(!e.target.closest('[data-tip]'))hideTip();},{passive:true});}
 const numfmt=(v,dec)=>v==null?'—':(Math.round(v*Math.pow(10,dec))/Math.pow(10,dec)).toLocaleString(undefined,{minimumFractionDigits:dec,maximumFractionDigits:dec});
 function niceNum(x,round){if(x<=0)return 1;const exp=Math.floor(Math.log10(x)),f=x/Math.pow(10,exp);let nf;if(round){nf=f<1.5?1:(f<3?2:(f<7?5:10));}else{nf=f<=1?1:(f<=2?2:(f<=5?5:10));}return nf*Math.pow(10,exp);}
 function niceScale(min,max,ticks){ticks=ticks||5;if(min===max){max=min+1;}const range=niceNum(max-min,false),step=niceNum(range/(ticks-1),true);const nmin=Math.floor(min/step)*step,nmax=Math.ceil(max/step)*step;return{min:nmin,max:nmax,step,n:Math.round((nmax-nmin)/step)};}
@@ -182,7 +182,7 @@ function lineChart(cfg){
  if(!all.length)return '<div class="note">データ未投入</div>';
  const sc=niceScale(Math.min(...all,cfg.min!=null?cfg.min:Infinity),Math.max(...all),5);
  const x=i=>pl+iw*(N<=1?0:i/(N-1)),y=v=>pt+ih*(1-(v-sc.min)/(sc.max-sc.min));
- let g=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="${cfg.aria||''}">`;
+ let g=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet"${cfg.aria?` role="img" aria-label="${cfg.aria}"`:''}>`;
  const axDec=sc.step>=1?0:(sc.step>=0.1?1:2);
  for(let v=sc.min;v<=sc.max+1e-9;v+=sc.step){const yy=y(v);
   g+=`<line x1="${pl}" y1="${yy}" x2="${W-pr}" y2="${yy}" stroke="#eef0f3"/>`;
@@ -219,11 +219,11 @@ function stackedBar(cfg){
  YRS.forEach((yr,i)=>{g+=`<text x="${x(i)}" y="${H-pb+17}" ${rot?`transform="rotate(-90 ${x(i)} ${H-pb+17})" text-anchor="end"`:'text-anchor="middle"'} font-size="11" fill="#9aa1ac">${yr}</text>`;});
  YRS.forEach((yr,i)=>{let acc=0;
   const tot=cfg.items.reduce((a,it)=>a+(it.data[i]||0),0);
-  if(tot<=0){g+=`<rect x="${(x(i)-bw/2).toFixed(1)}" y="${pt}" width="${bw}" height="${ih}" rx="2" fill="#eceef1" data-tip="${yr}: データ未取得（出典カード未転記・ゼロではない）"/>`;return;}
+  if(tot<=0){g+=`<rect x="${(x(i)-bw/2).toFixed(1)}" y="${pt}" width="${bw}" height="${ih}" rx="2" fill="#eceef1" data-tip="${yr}: データなし（ゼロではない）"/>`;return;}
   cfg.items.forEach(it=>{const v=it.data[i]||0;if(v<=0)return;
    const y1=y(acc+v),hgt=y(acc)-y(acc+v);
    g+=`<rect x="${x(i)-bw/2}" y="${y1.toFixed(1)}" width="${bw}" height="${Math.max(hgt-1.2,0).toFixed(1)}" rx="2" fill="${it.color}" data-tip="${it.name}｜${yr}: ${numfmt(v,dec)}${cfg.unit||''}"/>`;
-   if(hgt>=17&&bw>=24)g+=`<text x="${x(i)}" y="${(y1+hgt/2+3.5).toFixed(1)}" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">${numfmt(v,dec)}</text>`;
+   if(hgt>=17&&bw>=18)g+=`<text x="${x(i)}" y="${(y1+hgt/2+3.5).toFixed(1)}" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">${numfmt(v,dec)}</text>`;
    acc+=v;});
   g+=`<text x="${x(i)}" y="${(y(acc)-6).toFixed(1)}" text-anchor="middle" font-size="10.5" font-weight="800" fill="#374151">${numfmt(acc,dec)}</text>`;});
  g+='</svg>';return g;
@@ -264,7 +264,7 @@ function renderFin(){
  const Y=sl(F.years),S={};Object.keys(F.series).forEach(k=>S[k]=sl(F.series[k]));
  const slItems=items=>items.map(it=>({name:it.name,color:it.color,data:sl(it.data).map(v=>v==null?0:v)}));
  const yrLab=`${F.years[a]}（${F.wareki[a]}）〜${F.years[b]}（${F.wareki[b]}）年度`;
- const C1="#2a78d6",C2="#eb6834",C3="#1baf7a",C4="#eda100",C5="#e87ba4",CG="#b8bfc9";
+ const C1="#2a78d6",C2="#eb6834",C3="#1baf7a",C4="#eda100",CG="#b8bfc9";
  let h='';
  if(F.banner)h+=`<div class="banner">${F.banner}</div>`;
  const FT=[['ind','📊 主要指標の推移'],['rev','💰 歳入の構成'],['exp','🏛 歳出（性質別）'],['fund','🏦 基金・市債残高'],['bud','📅 会計区分（予算）'],['hikaku','🆚 都市比較'],['suikei','🔭 将来推計・健全化']];
@@ -272,9 +272,9 @@ function renderFin(){
  const hasSlider=['ind','rev','exp','fund','suikei'].includes(FINTAB);
  if(hasSlider){
   h+=`<div class="card finctl"><div class="finrange"><b>表示期間</b>
-   <input type="range" id="finFrom" min="0" max="${NY-1}" value="${a}" aria-label="表示開始年度">
-   <input type="range" id="finTo" min="0" max="${NY-1}" value="${b}" aria-label="表示終了年度">
-   <span class="rangelab">${yrLab}</span><button id="finReset" class="rst">全期間</button></div></div>`;
+   <span style="font-size:11px;color:#6b7280">開始</span><input type="range" id="finFrom" min="0" max="${NY-1}" value="${a}" aria-label="表示開始年度">
+   <span style="font-size:11px;color:#6b7280">終了</span><input type="range" id="finTo" min="0" max="${NY-1}" value="${b}" aria-label="表示終了年度">
+   <span class="rangelab">${yrLab}</span><button id="finReset" class="rst">全期間</button></div><div class="note" style="margin-top:6px">※ KPIタイルと各グラフの解説文は、期間の絞り込みにかかわらず全期間（2010〜2024年度）に基づく固定記述です</div></div>`;
  }
  if(FINTAB==='ind'){
   h+='<div class="grid kpis">'+(F.kpis||[]).map(kpiTile).join('')+'</div>';
@@ -297,20 +297,20 @@ function renderFin(){
   h+='<h2 class="sec">歳入の構成（款別・普通会計決算・単位:億円）</h2><div class="grid two">';
   h+=chartCard('歳入の内訳（8分類・積上げ）',`${yrLab}・全款を8分類に集約（合計＝歳入総額、残差ゼロ。表示は四捨五入のため±1億円の表示差が出る場合あり）・億円`,
    stackedBar({years:Y,unit:'億円',items:slItems(F.rev8)})+legend(F.rev8),
-   '歳入の柱は<b>市税（R6決算8,937億円・歳入の約43%）</b>。2020年度は特別定額給付金の<b>国庫支出金+142%</b>で構成が一時激変。2017年度の「税交付金等」の山（1,976億円）は、県費教職員移管の経過措置「道府県民税所得割臨時交付金」948億円を含む（2018年度からは税源移譲で市税に平年度化）。「税交付金等」=地方消費税交付金・各種税交付金・譲与税・地方特例交付金等の計、「その他」=分担金・使用料・手数料・財産収入・寄附金・諸収入の計。','総務省決算カード');
+   '歳入の柱は<b>市税（R6決算8,937億円・歳入の約43%）</b>。2020年度は特別定額給付金の<b>国庫支出金+142%</b>で構成が一時激変。2017年度の「税交付金等」の山（1,976億円）は、県費教職員移管の経過措置「道府県民税所得割臨時交付金」948億円を含む（2018年度以降は縮小して市税へ移行。2018年度にも128億円が残存）。「税交付金等」=地方消費税交付金・各種税交付金・譲与税・地方特例交付金・交通安全対策特別交付金・国有提供交付金等の計、「その他」=分担金・負担金・使用料・手数料・財産収入・寄附金・諸収入の計。','総務省決算カード');
   h+=chartCard('市債発行額・臨時財政対策債の推移','フロー（各年度の新規発行）・億円',
    lineChart({years:Y,unit:'億円',series:[{name:'市債発行額',color:C3,data:S['市債発行額']},{name:'うち臨時財政対策債',color:CG,data:S['臨時財政対策債'],dash:true}]})+legendLine([{name:'市債発行額',color:C3},{name:'うち臨時財政対策債（交付税代替の赤字地方債）',color:CG,dash:true}]),
-   '市債発行は抑制基調で、2024年度は1,096億円と15年間で最少（2013年度の2,771億円への急増は要因が一次資料で未確認）。<b>臨時財政対策債は普通交付税の代替として国の地方財政対策で発行可能額が定まる赤字地方債</b>で、近年は地方税収の回復等により全国的に発行可能額が縮小。横浜市も2010年度700億円→2024年度61億円とほぼ解消。','総務省決算カード');
+   '市債発行は抑制基調で、2024年度は1,096億円と15年間で最少。2013年度の2,771億円への急増は要因が一次資料で未確認（同年度は歳出側でも補助費等が1,370→2,755億円と同規模で増加しており、臨時的な大型支出と対になっている可能性があるが、因果は未確認）。<b>臨時財政対策債は普通交付税の代替として国の地方財政対策で発行可能額が定まる赤字地方債</b>で、近年は地方税収の回復等により全国的に発行可能額が縮小。横浜市も2010年度700億円→2024年度61億円とほぼ解消。','総務省決算カード');
   h+='</div>';
  }
  if(FINTAB==='exp'){
   h+='<h2 class="sec">歳出（性質別・普通会計決算・単位:億円）</h2><div class="grid two">';
   h+=chartCard('歳出の性質別内訳（8分類・積上げ）',`${yrLab}・合計＝歳出総額（残差ゼロ。表示は四捨五入のため±1億円の表示差が出る場合あり）・億円`,
    stackedBar({years:Y,unit:'億円',items:slItems(F.exp8)})+legend(F.exp8),
-   '<b>扶助費（社会保障関係）が2010年度3,244億円→2024年度6,215億円（+92%）と最大の構造的押し上げ要因</b>。2020年度の補助費等の急増（5,363億円）は特別定額給付金の給付事業によるもの。2021年度の普通建設事業費急増（3,159億円）は道路事業団関連等の一時要因。「その他」=維持補修費・積立金・投資及び出資金・貸付金等の計。','総務省決算カード');
+   '<b>扶助費（社会保障関係）が2010年度3,244億円→2024年度6,215億円（+92%）と最大の構造的押し上げ要因</b>。2020年度の補助費等の急増（5,363億円）は特別定額給付金の給付事業によるもの。2021年度の普通建設事業費急増（3,159億円）は（一財）横浜市道路建設事業団関連支出の増加等による一時要因（市のR3年度決算概要資料より）。「その他」=維持補修費・積立金・投資及び出資金・貸付金等の計。','総務省決算カード');
   h+=chartCard('義務的経費（人件費・扶助費・公債費）の推移','削減が難しい経費・億円',
    lineChart({years:Y,unit:'億円',series:[{name:'人件費',color:C1,data:S['人件費']},{name:'扶助費',color:C2,data:S['扶助費']},{name:'公債費',color:C3,data:S['公債費']}]})+legendLine([{name:'人件費',color:C1},{name:'扶助費',color:C2},{name:'公債費',color:C3}]),
-   '<b>人件費は2017年度に1,992→3,483億円（+1,491億円）へ段差＝県費負担教職員の給与負担移管</b>（2018年度の市税+13.3%の税源移譲と対になる制度変更）。公債費は1,800〜2,200億円で横ばい＝市債残高管理の効果。義務的経費計は6,989億円（2010・歳出の50.7%）→1兆2,038億円（2024・59.4%）へ拡大。','総務省決算カード');
+   '<b>人件費は2017年度に1,992→3,483億円（+1,491億円）へ段差＝県費負担教職員の給与負担移管</b>（2018年度の市税+13.3%の税源移譲と対になる制度変更）。公債費は約1,790〜2,190億円の範囲で横ばい（市債残高は同期間に+10.8%の微増。横ばいの要因は本ページでは未分析）。義務的経費計は6,989億円（2010・歳出の50.7%）→1兆2,038億円（2024・59.4%）へ拡大。','総務省決算カード');
   h+=chartCard('扶助費の推移','社会保障関係経費・億円',
    lineChart({years:Y,unit:'億円',series:[{name:'扶助費',color:C2,data:S['扶助費']}]}),
    '高齢化・子育て支援拡充を背景に一貫して増加。歳出に占める割合はR6決算で約31%。','総務省決算カード');
@@ -320,16 +320,16 @@ function renderFin(){
   h+='<h2 class="sec">基金・市債残高（ストック・単位:億円）</h2><div class="grid two">';
   h+=chartCard('基金残高（積立金現在高）の推移',`${yrLab}・決算カード（普通会計）ベース・億円`,
    stackedBar({years:Y,unit:'億円',items:slItems(F.kikin)})+legend(F.kikin),
-   '<b>財政調整基金は2019年度末に80億円まで減少した後、積み増しが進み2023年度末516億円・2024年度末463億円</b>。基金合計（普通会計）は247億円（2019）→710億円（2024）へ回復。※横浜市の減債基金（満期一括償還用）は決算統計上ここに計上されず全年「—」。<b>市IR資料の「基金残高」（2023年度末3,638.8億円）は全会計・全基金ベースの別定義</b>のため、本グラフと接続・比較はできない。','総務省決算カード・横浜市IR資料');
+   '<b>財政調整基金は2019年度末に80億円まで減少した後、積み増しが進み2023年度末516億円。2024年度末は463億円（前年から▲53億円）</b>。基金合計（普通会計）は2019年度の247億円から710億円（2024）まで戻している（最高は2023年度の714億円）。※横浜市の減債基金（満期一括償還用）は決算統計上ここに計上されず全年「—」。<b>市IR資料の「基金残高」（2023年度末3,638.8億円）は全会計・全基金ベースの別定義</b>のため、本グラフと接続・比較はできない。','総務省決算カード・横浜市IR資料');
   h+=chartCard('市債残高（地方債現在高・普通会計）の推移',`${yrLab}・億円`,
    lineChart({years:Y,unit:'億円',series:[{name:'地方債現在高',color:C2,data:S['地方債現在高']}]}),
-   '残高は2.2〜2.5兆円の帯で推移し、R6末は2兆4,601億円。<b>市の財政ビジョン指標「一般会計が対応する借入金残高」（別定義・全会計ベース）はR6末2兆9,492億円（前年比▲894億円）</b>で、市民1人当たり残高を「R3年度水準（約84万円）に維持」が市の目標。','総務省決算カード・横浜市財政ビジョン');
+   '残高は2.2〜2.5兆円の帯で推移し、15年間では2兆2,211億円→2兆4,601億円（+10.8%）と微増。<b>市の財政ビジョン指標「一般会計が対応する借入金残高」はR6末2兆9,492億円（市公表情報・一次資料は要再確認）</b>。これは一般会計が返済を負担する借入金（特別会計・企業会計・外郭団体分の一部を含む、普通会計より広い別定義）で、本グラフとの接続・比較はできない。','総務省決算カード・横浜市財政ビジョン');
   h+='</div>';
  }
  if(FINTAB==='bud'){
   const YL=F.yosan.labels;
   h+='<h2 class="sec">会計区分（当初予算の推移・単位:億円）</h2><div class="grid two">';
-  h+=chartCard('当初予算の会計区分別内訳（積上げ）','H28〜R7年度・当初予算（決算ではない）・億円。合計ラベル＝全会計（四捨五入の関係で公表値と±1億円程度ずれる場合あり）※期間スライダー非連動',
+  h+=chartCard('当初予算の会計区分別内訳（積上げ）','H28（2016）〜R7（2025）年度・当初予算（決算ではない）・億円。合計ラベル＝全会計（四捨五入の関係で公表値と±1億円程度ずれる場合あり）※期間スライダー非連動',
    stackedBar({years:YL,unit:'億円',items:[
     {name:'一般会計',color:C1,data:F.yosan.values},
     {name:'特別会計',color:C3,data:F.yosan.tokubetsu},
@@ -347,25 +347,24 @@ function renderFin(){
   h+=chartCard('【6都市比較】経常収支比率（R6/2024年度決算）','低いほど財政に弾力性・%',
    hbar({items:F.hikakuKeijo,unit:'%',dec:1,hlColor:'#1c5cab'}),
    '大都市はいずれも95〜101%の高水準で、横浜（99.0%）は6都市中3番目に低い。','横浜市 普通会計決算の概要（他都市比較）');
-  h+=chartCard('【5都市比較】市民1人当たり市債残高（R5/2023年度・万円）','旧5大市比較（川崎市を含まない年次の資料）・万円',
+  h+=chartCard('【5都市比較】市民1人当たり市債残高（R5/2023年度・万円）','旧5大市比較（川崎市を含まない年次の資料）・万円。横浜市IR資料の算定基準による値（本ページの普通会計残高÷住基人口の単純計算とは会計範囲・分母が異なる）',
    hbar({items:F.hikakuPercap,unit:'万円',dec:0,hlColor:'#1c5cab'}),
    '1人当たりでは横浜61万円と大阪（55）・名古屋（60）に近い水準で、京都（95）・神戸（76）より低い。','横浜市IR資料（2024年10月版）');
   h+='</div>';
-  h+='<div class="note">※ 政令市20市全体では、実質公債費比率は20市中16位・将来負担比率は15位（いずれも低い方から・R5決算・市公表情報＝一次PDFは要再確認）。</div>';
- }
+   }
  if(FINTAB==='suikei'){
   h+='<h2 class="sec">将来推計・健全化指標</h2><div class="grid two">';
   h+=chartCard('実質公債費比率の推移','借金返済負担の重さ（早期健全化基準25%）・%',
    lineChart({years:Y,unit:'%',dec:1,series:[{name:'実質公債費比率',color:C1,data:S['実質公債費比率']}]}),
-   '2010年度18.0%→R6年度9.2%へ一貫して改善（半減）。基準（25%）を大幅に下回る。','決算カード健全化判断比率');
+   '2010年度18.0%→R6年度9.2%へ約半減（2014〜15年度と2020〜21年度に小幅な上昇局面あり）。基準（25%）を大幅に下回る。','決算カード健全化判断比率');
   h+=chartCard('将来負担比率の推移','将来の負担見込み（早期健全化基準400%）・%',
    lineChart({years:Y,unit:'%',dec:1,series:[{name:'将来負担比率',color:C2,data:S['将来負担比率']}]}),
-   '2010年度234.4%→R6年度114.9%へ半減。ただし政令市内では依然高め（R5決算で20市中15位・低い方から＝市公表情報）。','決算カード健全化判断比率');
+   '2010年度234.4%→R6年度114.9%へ半減。水準としては早期健全化基準（400%）を大きく下回る。','決算カード健全化判断比率');
   h+=chartCard('長期財政推計：将来の収支不足額（令和7年12月版）','マイナス＝収支不足（対策を講じない場合の試算）・億円',
    hbar({items:F.suikei,unit:'億円',dec:0,hlColor:'#eb6834'}),
-   '生産年齢人口減少による市税減・社会保障費増で、<b>2030年度▲308億円→2065年度▲1,663億円</b>の収支不足が拡大する試算。旧推計（R4版: ▲502/▲823/▲1,752億円）より不足幅は縮小した。市公式解説ページ確認・一次PDFは要再確認。','横浜市 長期財政推計');
+   '生産年齢人口減少による市税減・社会保障費増で、<b>2030年度▲308億円→2065年度▲1,663億円</b>の収支不足が拡大する試算。旧推計（R4版: ▲502/▲823/▲1,752億円）より不足幅は縮小した。※数値は報道・解説記事からの引用値（市の一次資料は未確認）。','横浜市 長期財政推計');
   h+=`<div class="card chart-card"><h3>財政ビジョンの目標（令和4年6月策定）</h3><div class="cap">市の中長期の財政規律</div>
-   <div class="acom">・<b>市民1人当たり借入金残高</b>を令和3年度水準（約84万円・実績831,436円）程度に維持する方針<br>・「一般会計が対応する借入金残高」の2040年度目標: <b>3兆1,504億円</b>（R6年度末実績は2兆9,492億円・前年比▲894億円）<br>・目指す財政像: 「安定性」「強靱性」「将来投資能力」の3条件<div class="src">出典: 横浜市 財政ビジョン</div></div></div>`;
+   <div class="acom">・<b>市民1人当たり借入金残高</b>を令和3年度水準程度に維持する方針（市ビジョンの表記は「約84万円」。R3年度末の値は831,436円＝約83万円）<br>・「一般会計が対応する借入金残高」の2040年度目標: <b>3兆1,504億円</b>（R6年度末の市公表値は2兆9,492億円）<br>・目指す財政像: 「安定性」「強靱性」「将来投資能力」の3条件<br>※本カードの数値は市公表情報・報道由来で、一次資料（ビジョン本文PDF）での再確認前の参考値<div class="src">出典: 横浜市 財政ビジョン</div></div></div>`;
   h+='</div>';
  }
  if(FINTAB==='hikaku'||FINTAB==='bud'){
