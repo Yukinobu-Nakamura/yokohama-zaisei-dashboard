@@ -1,0 +1,460 @@
+<!doctype html><html lang="ja"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="横浜市の財政データ(2011〜2024年度・普通会計決算)を総務省決算カード・横浜市公表資料から可視化した公開ダッシュボード">
+<title>横浜市 財政ダッシュボード（2011〜2024年度）</title>
+<style>
+:root{
+ /* 横浜ブルー基調 + dataviz検証済みカテゴリカル */
+ --p:#1c5cab; --p-d:#104281; --accent:#2a78d6;
+ --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s5:#e87ba4; --s6:#008300;
+ --ink:#1d2330; --muted:#6b7280; --line:#e5e7eb; --bg:#f7f8fa; --card:#fff;
+ --warn-bg:#fff8ed; --warn-bd:#f2d9a6; --warn-ink:#8a5a00;
+}
+*{box-sizing:border-box}
+html{color-scheme:light}
+body{margin:0;font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,system-ui,sans-serif;color:var(--ink);background:var(--bg);line-height:1.65;font-size:15.5px;-webkit-text-size-adjust:100%}
+body.fs-big{zoom:1.18}
+header{background:linear-gradient(100deg,var(--p),var(--p-d));color:#fff;padding:18px 22px 14px}
+header h1{margin:0;font-size:20px;font-weight:800;letter-spacing:.02em}
+header .sub{opacity:.92;font-size:13.5px;margin-top:4px}
+.internal{display:inline-block;background:#fff;color:#b32020;font-weight:800;font-size:11px;border-radius:6px;padding:2px 8px;margin-right:8px;vertical-align:middle}
+.topbar{position:sticky;top:0;z-index:40;background:#fff;border-bottom:1px solid var(--line);padding:8px 16px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tabs button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:10px 16px;font-size:15px;font-weight:700;cursor:pointer;color:var(--ink);white-space:nowrap}
+.tabs button.on{background:var(--p);color:#fff;border-color:var(--p)}
+.seg{display:inline-flex;background:#fff;border:1.5px solid var(--p);border-radius:10px;overflow:hidden;margin-left:auto}
+.seg button{border:0;background:#fff;padding:10px 16px;font-size:14.5px;cursor:pointer;color:var(--p);font-weight:800}
+.seg button.on{background:var(--p);color:#fff}
+.wrap{max-width:1240px;margin:0 auto;padding:16px}
+.grid{display:grid;gap:14px}
+.two{grid-template-columns:1fr 1fr}
+.three{grid-template-columns:repeat(3,1fr)}
+@media(max-width:980px){.three{grid-template-columns:1fr 1fr}}
+@media(max-width:820px){.two,.three{grid-template-columns:1fr}}
+.kpis{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:15px 17px;box-shadow:0 1px 2px rgba(20,20,40,.04)}
+.kpi .lab{font-size:12.5px;color:var(--muted);font-weight:700}
+.kpi .val{font-size:24px;font-weight:800;margin-top:2px}
+.kpi .val small{font-size:11px;font-weight:700;color:var(--muted)}
+.kpi .chg{font-size:12.5px;font-weight:700;margin-top:2px;color:var(--muted)}
+.chart-card h3{margin:0 0 2px;font-size:16px}
+.chart-card .cap{font-size:12.5px;color:var(--muted);margin-bottom:8px}
+svg{width:100%;height:auto;display:block;font-family:inherit}
+.legend{display:flex;flex-wrap:wrap;gap:8px 14px;margin-top:8px;font-size:13px}
+.legend span{display:inline-flex;align-items:center;gap:5px;color:#444}
+.legend i{width:11px;height:11px;border-radius:3px;display:inline-block}
+.legend i.ln{width:16px;height:0;border-top-width:3px;border-top-style:solid;border-radius:0}
+.legend i.dash{border-top-style:dashed}
+.note{font-size:13px;color:var(--muted);margin-top:8px}
+.tip{position:fixed;pointer-events:none;background:#111826;color:#fff;font-size:13.5px;padding:6px 9px;border-radius:7px;opacity:0;transition:opacity .08s;z-index:90;white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+.banner{background:#eef5fd;border:1px solid #c8ddf3;color:#174e86;border-radius:10px;padding:11px 14px;font-size:14px;margin-bottom:12px}
+.warnbox{background:var(--warn-bg);border:1px solid var(--warn-bd);color:var(--warn-ink);border-radius:10px;padding:11px 14px;font-size:13.5px;margin-bottom:12px}
+.acom{background:#f4f8fd;border-left:3px solid var(--accent);border-radius:0 8px 8px 0;padding:10px 12px;margin-top:9px;font-size:13.5px;color:#374151;overflow-wrap:anywhere}
+.acom b{color:var(--ink)}
+.src{color:#9aa1ac;font-size:11.5px;margin-top:3px;word-break:break-all}
+.lnk{color:var(--p-d);text-decoration:underline;cursor:pointer}
+.lnk:hover{color:var(--accent)}
+a.lnk-ref{color:#7a8aa0;cursor:pointer;text-decoration:underline dotted;font-size:inherit}
+a.lnk-ref:hover{color:var(--p)}
+.bk{display:inline-block;margin:0 0 10px;background:#fff;border:1.5px solid var(--p);color:var(--p);border-radius:10px;padding:10px 16px;font-size:15px;font-weight:800;cursor:pointer}
+.bk:hover{background:var(--p);color:#fff}
+.hl-src{animation:hlsrc 2s ease-out}
+@keyframes hlsrc{0%{background:#fff3c4}100%{background:transparent}}
+.dsec{margin-top:10px}
+.dsec h4{margin:0 0 5px;font-size:15px;color:var(--p-d);border-left:3px solid var(--p);padding-left:7px}
+.dsec ul{margin:4px 0 0;padding-left:19px;font-size:14px}
+.dsec li{margin-bottom:7px}
+.swbox{border-radius:10px;padding:12px 14px;margin-top:8px;font-size:14px}
+.sw-s{background:#f2faf4;border:1px solid #cce8d4}
+.sw-w{background:#fdf3f2;border:1px solid #f3d2cd}
+.swbox b.h{display:block;font-size:14.5px;margin-bottom:5px}
+.swbox ul{margin:2px 0 0;padding-left:17px}
+.swbox li{margin-bottom:8px}
+.hint{font-size:12.5px;color:var(--p-d);background:#eef5fd;border-radius:6px;padding:2px 8px;display:inline-block;margin-left:6px;font-weight:700}
+/* スマホ最適化: クイックチップ・縦積みマトリックス */
+.chips{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding:2px 0 10px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{white-space:nowrap;background:#fff;border:1.5px solid var(--p);color:var(--p-d);border-radius:999px;padding:9px 15px;font-size:14px;font-weight:700;cursor:pointer;flex:0 0 auto}
+.chip:active,.chip:hover{background:var(--p);color:#fff}
+.mtxm .fcard{margin-bottom:12px}
+.mtxm .fttl{font-size:15px;font-weight:800;color:var(--p-d);border-left:4px solid var(--p);padding-left:8px;margin-bottom:6px}
+.mtxm .crow{display:flex;gap:8px;border-bottom:1px dashed var(--line);padding:8px 2px;font-size:14px;align-items:baseline}
+.mtxm .crow:last-child{border-bottom:0}
+.mtxm .crow .cn2{flex:0 0 5.2em;font-weight:800}
+.mtxm .crow.hl2{background:#fffaf5}
+/* 財政サブタブ(ページ内タブ) */
+.ftabs{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding:4px 0 12px;scrollbar-width:none}
+.ftabs::-webkit-scrollbar{display:none}
+.ftabs button{white-space:nowrap;border:1px solid var(--line);background:#fff;border-radius:999px;padding:10px 17px;font-size:14.5px;font-weight:700;color:var(--ink);cursor:pointer;flex:0 0 auto}
+.ftabs button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+@media(max-width:700px){
+ .wrap{padding:12px 10px}
+ .topbar{padding:8px 10px;gap:8px}
+ .tabs{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;max-width:100%}
+ .tabs::-webkit-scrollbar{display:none}
+ .seg{margin-left:0}
+ header{padding:14px 14px 12px}
+ header h1{font-size:17px;line-height:1.5}
+ .card{padding:13px 13px;border-radius:12px}
+ .kpi .val{font-size:22px}
+ .two,.three{grid-template-columns:1fr}
+}
+footer{max-width:1240px;margin:8px auto 30px;padding:0 16px;color:var(--muted);font-size:12.5px}
+.hidden{display:none!important}
+/* 簡単版 / 詳細版 */
+body.m-simple .d-only{display:none!important}
+body.m-detail .s-only{display:none!important}
+.cands{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.cand{position:relative;border-top:4px solid var(--muted)}
+.cand.hl{border-top-color:var(--s2);background:#fffaf6}
+.cand .nm{font-size:18.5px;font-weight:800}
+.cand .yomi{font-size:12px;color:var(--muted);font-weight:600}
+.cand .meta{font-size:13px;color:var(--muted);margin:2px 0 6px}
+.cand .pt{display:inline-block;font-size:12px;font-weight:700;border:1px solid var(--line);border-radius:6px;padding:1px 7px;margin:0 4px 4px 0;background:#f8f9fb;color:#374151}
+.cand ul{margin:6px 0 0;padding-left:18px;font-size:14px}
+.cand li{margin-bottom:3px}
+.badge-hl{position:absolute;top:-11px;right:10px;background:var(--s2);color:#fff;font-size:10px;font-weight:800;border-radius:6px;padding:2px 8px}
+/* マトリックス表 */
+.mtx-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:#fff}
+table.mtx{border-collapse:separate;border-spacing:0;width:100%;min-width:860px;font-size:14px}
+.mtx th,.mtx td{border-bottom:1px solid var(--line);border-right:1px solid #f0f1f4;padding:8px 9px;vertical-align:top;text-align:left}
+.mtx thead th{background:#f2f5fa;font-size:13px;position:sticky;top:0;z-index:2}
+.mtx thead th.hl{background:#fdeee3}
+.mtx tbody th{position:sticky;left:0;background:#fafbfc;font-size:13.5px;min-width:110px;max-width:150px;z-index:1;font-weight:800}
+.mtx td.hl{background:#fffaf5}
+.mtx td .st{font-weight:800;font-size:14.5px}
+.mtx td .dt{color:#4b5563;font-size:13px}
+.mtx td .ref{color:#9aa1ac;font-size:11px}
+.pos-y{color:#0a7a3d}.pos-n{color:#b32020}.pos-p{color:#8a5a00}.pos-u{color:#9aa1ac}
+.issue{border-left:4px solid var(--p)}
+.issue h3{margin:0;font-size:17px;line-height:1.5}
+.issue .rank{display:inline-block;background:var(--p);color:#fff;border-radius:7px;font-size:12.5px;font-weight:800;padding:1px 8px;margin-right:7px;vertical-align:2px}
+.issue .sns{display:inline-block;background:#fdeef4;color:#b0346c;border:1px solid #f3cdde;border-radius:6px;font-size:12px;font-weight:700;padding:1px 7px;margin-left:6px}
+.issue .sum{font-size:14.5px;margin:8px 0 0}
+.issue .facts{font-size:13.5px;color:#374151;background:#f8f9fb;border-radius:8px;padding:8px 11px;margin-top:8px}
+.issue .facts b{color:var(--ink)}
+.stance-line{font-size:13.5px;margin-top:8px;border-top:1px dashed var(--line);padding-top:8px;line-height:1.9}
+.stance-line b.cn{color:var(--p-d)}
+details.dx{margin-top:8px;border:1px solid var(--line);border-radius:9px;padding:7px 11px;font-size:12px;background:#fcfcfd}
+details.dx summary{cursor:pointer;font-weight:700;color:var(--p-d);font-size:12px}
+.qa{background:#f4f8f4;border-left:3px solid var(--s6);border-radius:0 8px 8px 0;padding:10px 12px;margin-top:8px;font-size:13.5px}
+/* 出典 */
+.srcs li{font-size:13px;margin-bottom:6px;overflow-wrap:anywhere}
+.srcs .d{color:var(--muted);font-size:12px}
+h2.sec{font-size:18px;margin:20px 0 10px;border-left:5px solid var(--p);padding-left:9px}
+@media print{
+ .topbar{position:static}
+ .tabs,.seg{display:none}
+ .panel{display:block!important}
+ .card{box-shadow:none;break-inside:avoid}
+ body{background:#fff}
+}
+/* 財政タブv2: 期間スライダー+サブタブ */
+.finctl{padding:12px 16px;margin:4px 0 14px}
+.finrange{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12.5px}
+.finrange input[type=range]{flex:1;min-width:110px;accent-color:var(--p)}
+.finrange .rangelab{font-weight:800;color:var(--p);white-space:nowrap}
+.finrange .rst{border:1px solid var(--line);background:#fff;border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer;font-weight:700;color:var(--ink)}
+.finrange .rst:hover{background:var(--bg)}
+.fintabs{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.fintabs button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 12px;font-size:12.5px;font-weight:700;cursor:pointer;color:var(--ink)}
+.fintabs button.on{background:var(--p);color:#fff;border-color:var(--p)}
+@media(max-width:760px){.finrange{gap:8px}.finrange .rangelab{font-size:11.5px}}
+</style></head><body class="m-detail">
+<header>
+ <h1>横浜市 財政ダッシュボード（2011〜2024年度決算）</h1>
+ <div class="sub">総務省「決算カード」・横浜市財政局公表資料から作成（普通会計決算・単位は億円に統一）｜ 作成・データ確認日: 2026-10-05 ｜ 本ページは公開データの可視化であり、特定の候補者・政党への投票を呼びかけるものではありません</div>
+</header>
+<div class="topbar">
+ <div class="tabs"><button class="on">💹 財政ダッシュボード</button></div>
+ <button class="bk" id="fsbtn" style="margin:0;margin-left:auto" title="文字サイズ切替">文字大</button>
+</div>
+<div class="wrap">
+ <div id="panel-fin" class="panel"></div>
+</div>
+<footer>出典: 総務省「決算カード」「財政状況類似団体比較カード」（<span style="word-break:break-all">https://www.soumu.go.jp/iken/zaisei/card.html</span>）／横浜市財政局「決算カード」「普通会計決算の概要」「IR資料」「予算案資料編」「財政ビジョン」「長期財政推計」（city.yokohama.lg.jp）。政府標準利用規約・PDL1.0（公共データ利用規約）に基づき出典明記のうえ利用。欠損年度は補間せずグレー表示・線の途切れで明示（ゼロではありません）。「要再確認」「未確認」と付した数値は一次資料での再確認前の参考値です。誤りのご指摘はリポジトリのIssueまで。</footer>
+<div class="tip" id="tip"></div>
+<script>
+const DATA={
+ fin:{
+  years:["2010","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020","2021","2022","2023","2024"],
+  wareki:["H22","H23","H24","H25","H26","H27","H28","H29","H30","R1","R2","R3","R4","R5","R6"],
+  banner:"💹 <b>横浜市の財政（普通会計決算・2010〜2024年度の15年）</b>: 総務省「市町村別決算カード」15年分（神奈川県版・横浜市分）から機械抽出し、恒等式（歳入款Σ=歳入合計・性質別Σ=歳出合計・義務的経費=人件費+扶助費+公債費）を全15年で検証済み（残差ゼロ）。単位は億円に統一（原典千円）。1st版の欠損年度（2015〜19の性質別・市債残高等）は全て原典から充填済み。",
+  series:{
+   "歳入総額":[13991.4,14220.5,14319.8,15980.3,14690.3,15269.3,15592.9,17052.4,17485.0,17941.3,23929.9,22302.9,21079.8,19853.9,20558.9],
+   "歳出総額":[13778.5,13955.9,14035.0,15582.2,14432.7,15012.9,15415.1,16820.3,17308.9,17659.7,23692.9,22026.4,20729.3,19579.3,20257.6],
+   "実質収支":[92.0,108.5,81.7,182.0,105.8,129.7,82.2,130.6,47.6,80.9,67.3,140.0,198.0,117.3,174.6],
+   "市税":[7006.8,7054.7,7012.3,7073.6,7199.7,7189.6,7207.6,7271.4,8237.2,8464.6,8438.7,8389.0,8672.8,8863.0,8937.1],
+   "地方交付税":[160.3,242.1,245.7,225.2,247.1,200.6,191.0,249.7,214.0,237.3,232.1,520.9,400.9,423.3,488.1],
+   "国庫支出金":[2171.9,2209.4,2140.4,2440.1,2359.6,2533.8,2689.3,3055.7,2979.7,3192.6,7729.8,4841.4,4656.6,4224.7,4327.1],
+   "市債発行額":[1345.4,1294.4,1470.6,2771.3,1508.5,1674.8,1587.8,1592.3,1781.6,1857.8,1678.6,1682.6,1421.1,1322.7,1095.7],
+   "臨時財政対策債":[700.0,660.0,660.0,740.0,669.8,540.0,489.7,601.2,552.4,425.4,381.3,586.6,312.5,166.0,61.4],
+   "人件費":[1912.6,1981.0,1966.0,1913.7,1970.6,2008.2,1992.1,3483.2,3494.7,3524.9,3590.9,3602.5,3644.5,3551.9,3862.9],
+   "扶助費":[3243.6,3442.7,3531.5,3650.2,3893.3,4099.8,4351.1,4449.1,4542.8,4773.1,4992.8,5861.7,5684.7,5908.8,6214.9],
+   "公債費":[1832.5,1841.6,1827.2,1785.4,1922.0,1869.3,1955.7,1835.0,1918.6,1992.6,1993.9,1941.2,2188.8,1888.7,1960.0],
+   "普通建設事業費":[1643.3,1638.6,1713.1,1849.0,1769.9,2180.6,2173.4,2024.7,2352.3,2352.5,2289.9,3159.0,2090.6,2012.6,2013.6],
+   "義務的経費計":[6988.7,7265.2,7324.7,7349.4,7785.9,7977.3,8299.0,9767.4,9956.1,10290.7,10577.7,11405.3,11517.9,11349.4,12037.8],
+   "地方債現在高":[22211.4,22079.9,22137.2,23502.8,23464.3,23624.9,23584.3,23641.1,23790.4,23926.4,23864.1,23844.2,23306.2,25095.6,24600.8],
+   "経常収支比率":[94.1,94.0,95.6,94.3,97.4,95.2,98.9,97.9,97.7,101.2,100.5,95.1,97.9,98.1,99.0],
+   "実質公債費比率":[18.0,16.3,15.4,15.4,16.9,17.0,16.5,13.3,11.2,10.2,10.5,10.6,9.7,9.5,9.2],
+   "将来負担比率":[234.4,213.0,200.4,198.7,182.5,175.6,160.7,145.6,138.5,140.4,137.4,129.9,129.2,127.2,114.9],
+   "財政力指数":[1.0,0.98,0.96,0.96,0.96,0.97,0.97,0.97,0.97,0.97,0.97,0.96,0.95,0.94,0.95]
+  },
+  rev8:[
+   {name:"市税",color:"#1c5cab",data:[7006.8,7054.7,7012.3,7073.6,7199.7,7189.6,7207.6,7271.4,8237.2,8464.6,8438.7,8389.0,8672.8,8863.0,8937.1]},
+   {name:"税交付金等",color:"#7fa8d9",data:[700.8,709.3,675.0,715.6,764.0,1036.3,934.7,1975.7,1177.4,1058.1,1203.3,1391.4,1388.2,1423.0,1785.8]},
+   {name:"地方交付税",color:"#1baf7a",data:[160.3,242.1,245.7,225.2,247.1,200.6,191.0,249.7,214.0,237.3,232.1,520.9,400.9,423.3,488.1]},
+   {name:"国庫支出金",color:"#eb6834",data:[2171.9,2209.4,2140.4,2440.1,2359.6,2533.8,2689.3,3055.7,2979.7,3192.6,7729.8,4841.4,4656.6,4224.7,4327.1]},
+   {name:"県支出金",color:"#eda100",data:[449.4,548.7,504.3,473.6,506.6,633.6,641.0,685.5,705.2,781.6,924.5,935.5,1035.6,1022.5,1067.6]},
+   {name:"市債",color:"#e87ba4",data:[1345.4,1294.4,1470.6,2771.3,1508.5,1674.8,1587.8,1592.3,1781.6,1857.8,1678.6,1682.6,1421.1,1322.7,1095.7]},
+   {name:"繰入金・繰越金",color:"#9b7fd4",data:[288.8,372.3,419.4,474.0,549.2,453.3,515.0,470.7,518.8,557.5,651.7,750.7,638.1,625.3,670.4]},
+   {name:"その他",color:"#b8bfc9",data:[1868.1,1789.4,1852.0,1806.9,1555.6,1547.3,1826.6,1751.2,1871.0,1791.9,3071.2,3791.3,2866.7,1949.3,2187.2]}
+  ],
+  exp8:[
+   {name:"人件費",color:"#1c5cab",data:[1912.6,1981.0,1966.0,1913.7,1970.6,2008.2,1992.1,3483.2,3494.7,3524.9,3590.9,3602.5,3644.5,3551.9,3862.9]},
+   {name:"扶助費",color:"#eb6834",data:[3243.6,3442.7,3531.5,3650.2,3893.3,4099.8,4351.1,4449.1,4542.8,4773.1,4992.8,5861.7,5684.7,5908.8,6214.9]},
+   {name:"公債費",color:"#1baf7a",data:[1832.5,1841.6,1827.2,1785.4,1922.0,1869.3,1955.7,1835.0,1918.6,1992.6,1993.9,1941.2,2188.8,1888.7,1960.0]},
+   {name:"普通建設事業費",color:"#eda100",data:[1643.3,1638.6,1713.1,1849.0,1769.9,2180.6,2173.4,2024.7,2352.3,2352.5,2289.9,3159.0,2090.6,2012.6,2013.6]},
+   {name:"物件費",color:"#7fa8d9",data:[1376.8,1455.1,1435.7,1459.4,1541.1,1547.1,1576.7,1576.6,1605.2,1686.8,1906.4,2240.7,2402.7,2117.4,2210.8]},
+   {name:"補助費等",color:"#e87ba4",data:[1482.5,1422.9,1369.6,2755.0,1390.9,1389.3,1415.6,1409.0,1417.0,1433.6,5362.6,1576.7,1660.9,1599.2,1520.1]},
+   {name:"繰出金",color:"#9b7fd4",data:[958.1,1015.1,1055.0,1065.9,1128.4,1117.6,1178.1,1193.9,1190.0,1169.1,1161.8,1187.2,1198.6,1224.6,1256.8]},
+   {name:"その他",color:"#b8bfc9",data:[1329.1,1158.9,1136.9,1103.6,816.5,801.0,772.4,848.8,788.3,727.1,2394.6,2457.4,1858.5,1276.1,1218.5]}
+  ],
+  kikin:[
+   {name:"財政調整基金",color:"#1c5cab",data:[157.9,108.4,127.3,187.4,188.1,231.2,173.6,262.5,216.9,79.6,113.5,313.2,313.5,516.5,463.2]},
+   {name:"その他特定目的基金",color:"#eda100",data:[160.6,187.6,158.6,159.8,148.9,148.4,146.5,153.7,145.3,167.4,174.2,183.4,184.8,197.1,247.3]}
+  ],
+  kikinTotal:[318.5,296.0,285.9,347.2,337.0,379.6,320.1,416.2,362.2,247.0,287.7,496.6,498.3,713.6,710.5],
+  yosan:{labels:["H28","H29","H30","R1","R2","R3","R4","R5","R6","R7"],values:[15100,16431,17264,17615,17400,20073,19749,19022,19156,19844],
+   tokubetsu:[13471,13498,13019,13282,12697,13013,12484,13068,13079,13649],kouei:[5409,5801,5656,6152,5963,5934,5842,5919,6110,6387],zenkaikei:[33979,35730,35940,37048,36060,39020,38074,38008,38345,39881]},
+  hikakuKeijo:[{name:"大阪市",v:89.8},{name:"神戸市",v:98.7},{name:"横浜市",v:99.0,hl:true},{name:"川崎市",v:99.3},{name:"京都市",v:100.4},{name:"名古屋市",v:101.2}],
+  hikakuPercap:[{name:"大阪市",v:55},{name:"名古屋市",v:60},{name:"横浜市",v:61,hl:true},{name:"神戸市",v:76},{name:"京都市",v:95}],
+  suikei:[{name:"2030年度",v:-308,hl:true},{name:"2040年度",v:-661,hl:true},{name:"2065年度",v:-1663,hl:true}],
+  kpis:[
+   {lab:"歳出総額（普通会計・R6/2024年度決算）",val:"2兆258",unit:"億円",chg:"コロナ期ピーク2.37兆円（R2）から平常化"},
+   {lab:"市税収入（R6決算）",val:"8,937",unit:"億円",chg:"15年間で最高・3年連続増（2010年度比+28%）"},
+   {lab:"市債残高（普通会計・R6末）",val:"2兆4,601",unit:"億円",chg:"市指標「一般会計が対応する借入金残高」は2兆9,492億円（前年比▲894億円）"},
+   {lab:"経常収支比率（R6）",val:"99.0",unit:"%",chg:"100%近傍で硬直化が高止まり"},
+   {lab:"実質公債費比率 / 将来負担比率（R6）",val:"9.2% / 114.9%",unit:"",chg:"早期健全化基準（25% / 400%）を大幅に下回り改善傾向"},
+   {lab:"基金残高（普通会計・R6末）",val:"710",unit:"億円",chg:"財政調整基金463億+特定目的基金247億（決算カードベース）"},
+   {lab:"一般会計 当初予算（R7/2025年度）",val:"1兆9,844",unit:"億円",chg:"前年度比 +688億円（+3.6%）※市資料表記は+689億円（丸め差）"}
+  ],
+  notes:[
+   "単位: 億円（原典は全year千円単位＝総務省 市町村別決算カード。千円÷100,000で換算・小数第1位まで保持。全15年が同一出典・同一精度）。",
+   "本版（v2）は総務省「市町村別決算カード」神奈川県版の横浜市分15年（H22=card-11〜R6=card-25）を機械抽出し、恒等式検証（歳入款Σ=歳入合計・性質別Σ=歳出合計・義務的経費=人件+扶助+公債・実質収支=差引−繰越財源、全15年で残差ゼロ）と隣接年連続性照合を通過したデータに全面更新。1st版の欠損（2011の款別・2015〜19の性質別/市債残高・指標の歯抜け）は全て充填。",
+   "実質収支は決算カード（普通会計）に統一（1st版は2017〜21年度のみ市資料＝一般会計ベースが混在していたため差し替え。例: 2017年度 72.8→130.6億円）。",
+   "基金は決算カード「積立金現在高」（普通会計・財政調整/減債/その他特定目的）に統一してグラフ化。横浜市の減債基金（満期一括償還用）は決算統計上ここに計上されず全年「—」。市IR資料の「基金残高」（2023年度末3,638.8億円）は全会計・全基金ベースの別定義のため接続・比較しないこと。",
+   "将来負担比率の2015年度は175.6%（1st版の182.6%は転記誤り・H27カード原典で確認）。2012年度人件費は1,966.0億円（1st版1,967億円は丸め転記）。",
+   "長期財政推計（令和7年12月版）の収支不足額は市公式解説ページで確認（一次PDF本文は要再確認）。旧推計（令和4年度版）は2030年度▲502億・2040年度▲823億・2065年度▲1,752億円＝最新版で不足幅はやや縮小。",
+   "政令市比較は横浜市財政局公表の6都市（旧5大市+川崎）比較。20政令市全体の比較は未採用（実質公債費比率は20市中16位・将来負担比率15位＝R5決算・市公表情報、一次PDF要再確認）。",
+   "公会計（統一的基準の財務書類＝BS/PL/CF）・歳入の款別フル内訳・基金内訳の時系列は本資料では未収録（横浜市公表の「財務書類」「財政状況資料集」で確認可能）。"
+  ]
+ }, };
+const tip=document.getElementById('tip');
+function showTip(e,html){tip.innerHTML=html;tip.style.opacity=1;tip.style.left=Math.min(e.clientX+12,window.innerWidth-260)+'px';tip.style.top=(e.clientY-10)+'px';}
+function hideTip(){tip.style.opacity=0;}
+function bindTips(el){el.querySelectorAll('[data-tip]').forEach(n=>{n.addEventListener('mousemove',e=>showTip(e,n.dataset.tip));n.addEventListener('mouseleave',hideTip);});}
+const numfmt=(v,dec)=>v==null?'—':(Math.round(v*Math.pow(10,dec))/Math.pow(10,dec)).toLocaleString(undefined,{minimumFractionDigits:dec,maximumFractionDigits:dec});
+function niceNum(x,round){if(x<=0)return 1;const exp=Math.floor(Math.log10(x)),f=x/Math.pow(10,exp);let nf;if(round){nf=f<1.5?1:(f<3?2:(f<7?5:10));}else{nf=f<=1?1:(f<=2?2:(f<=5?5:10));}return nf*Math.pow(10,exp);}
+function niceScale(min,max,ticks){ticks=ticks||5;if(min===max){max=min+1;}const range=niceNum(max-min,false),step=niceNum(range/(ticks-1),true);const nmin=Math.floor(min/step)*step,nmax=Math.ceil(max/step)*step;return{min:nmin,max:nmax,step,n:Math.round((nmax-nmin)/step)};}
+/* 折れ線（全点に値ラベル表示＝グラフ基本ルール） */
+function lineChart(cfg){
+ const YRS=cfg.years,N=YRS.length,u=cfg.unit||'',dec=cfg.dec!=null?cfg.dec:0;
+ const W=600,H=300,pl=56,pr=16,pt=20,pb=50,iw=W-pl-pr,ih=H-pt-pb;
+ let all=[];cfg.series.forEach(s=>s.data.forEach(v=>{if(v!=null)all.push(v)}));
+ (cfg.refs||[]).forEach(r=>all.push(r.v));
+ if(!all.length)return '<div class="note">データ未投入</div>';
+ const sc=niceScale(Math.min(...all,cfg.min!=null?cfg.min:Infinity),Math.max(...all),5);
+ const x=i=>pl+iw*(N<=1?0:i/(N-1)),y=v=>pt+ih*(1-(v-sc.min)/(sc.max-sc.min));
+ let g=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="${cfg.aria||''}">`;
+ for(let v=sc.min;v<=sc.max+1e-9;v+=sc.step){const yy=y(v);
+  g+=`<line x1="${pl}" y1="${yy}" x2="${W-pr}" y2="${yy}" stroke="#eef0f3"/>`;
+  g+=`<text x="${pl-6}" y="${yy+4}" text-anchor="end" font-size="12" fill="#9aa1ac">${numfmt(v,0)}</text>`;}
+ (cfg.refs||[]).forEach(r=>{const yy=y(r.v);
+  g+=`<line x1="${pl}" y1="${yy}" x2="${W-pr}" y2="${yy}" stroke="${r.color||'#e87ba4'}" stroke-dasharray="5 3" stroke-width="1.6"/>`;
+  g+=`<text x="${W-pr-2}" y="${yy-4}" text-anchor="end" font-size="11.5" font-weight="700" fill="${r.color||'#e87ba4'}">${r.label}</text>`;});
+ const rot=N>9;
+ YRS.forEach((yr,i)=>{g+=`<text x="${x(i)}" y="${H-pb+17}" ${rot?`transform="rotate(-90 ${x(i)} ${H-pb+17})" text-anchor="end"`:'text-anchor="middle"'} font-size="11" fill="#9aa1ac">${yr}</text>`;});
+ cfg.series.forEach((s,si)=>{let d='',started=false;
+  s.data.forEach((v,i)=>{if(v==null){started=false;return;}d+=(started?'L':'M')+x(i).toFixed(1)+' '+y(v).toFixed(1);started=true;});
+  g+=`<path d="${d}" fill="none" stroke="${s.color}" stroke-width="2.2" stroke-linejoin="round" ${s.dash?'stroke-dasharray="6 4"':''}/>`;
+  s.data.forEach((v,i)=>{if(v==null)return;
+   const lab=numfmt(v,dec);const above=(cfg.series.length===1)?(i%2===0):(si===0);
+   const ly=above?y(v)-8:y(v)+15;
+   g+=`<circle cx="${x(i)}" cy="${y(v)}" r="3.4" fill="#fff" stroke="${s.color}" stroke-width="2" data-tip="${s.name}｜${YRS[i]}: ${lab}${u}"/>`;
+   g+=`<text x="${x(i)}" y="${ly}" text-anchor="middle" font-size="10.5" font-weight="700" fill="${s.labColor||s.color}">${lab}</text>`;});
+ });
+ g+='</svg>';return g;
+}
+/* 積上げ棒（合計ラベル＋十分な高さのセグメントに値） */
+function stackedBar(cfg){
+ const YRS=cfg.years,N=YRS.length,dec=cfg.dec!=null?cfg.dec:0;
+ const W=600,H=330,pl=56,pr=16,pt=22,pb=50,iw=W-pl-pr,ih=H-pt-pb;
+ const totals=YRS.map((_,i)=>cfg.items.reduce((a,it)=>a+(it.data[i]||0),0));
+ if(!totals.some(t=>t>0))return '<div class="note">データ未投入</div>';
+ const sc=niceScale(0,Math.max(...totals),5);
+ const bw=Math.min(30,iw/N*0.62),x=i=>pl+iw*(N<=1?0.5:(i+0.5)/N),y=v=>pt+ih*(1-(v-sc.min)/(sc.max-sc.min));
+ let g=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">`;
+ for(let v=sc.min;v<=sc.max+1e-9;v+=sc.step){const yy=y(v);
+  g+=`<line x1="${pl}" y1="${yy}" x2="${W-pr}" y2="${yy}" stroke="#eef0f3"/>`;
+  g+=`<text x="${pl-6}" y="${yy+4}" text-anchor="end" font-size="12" fill="#9aa1ac">${numfmt(v,0)}</text>`;}
+ const rot=N>9;
+ YRS.forEach((yr,i)=>{g+=`<text x="${x(i)}" y="${H-pb+17}" ${rot?`transform="rotate(-90 ${x(i)} ${H-pb+17})" text-anchor="end"`:'text-anchor="middle"'} font-size="11" fill="#9aa1ac">${yr}</text>`;});
+ YRS.forEach((yr,i)=>{let acc=0;
+  const tot=cfg.items.reduce((a,it)=>a+(it.data[i]||0),0);
+  if(tot<=0){g+=`<rect x="${(x(i)-bw/2).toFixed(1)}" y="${pt}" width="${bw}" height="${ih}" rx="2" fill="#eceef1" data-tip="${yr}: データ未取得（出典カード未転記・ゼロではない）"/>`;return;}
+  cfg.items.forEach(it=>{const v=it.data[i]||0;if(v<=0)return;
+   const y1=y(acc+v),hgt=y(acc)-y(acc+v);
+   g+=`<rect x="${x(i)-bw/2}" y="${y1.toFixed(1)}" width="${bw}" height="${Math.max(hgt-1.2,0).toFixed(1)}" rx="2" fill="${it.color}" data-tip="${it.name}｜${yr}: ${numfmt(v,dec)}${cfg.unit||''}"/>`;
+   if(hgt>=17&&bw>=24)g+=`<text x="${x(i)}" y="${(y1+hgt/2+3.5).toFixed(1)}" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">${numfmt(v,dec)}</text>`;
+   acc+=v;});
+  g+=`<text x="${x(i)}" y="${(y(acc)-6).toFixed(1)}" text-anchor="middle" font-size="10.5" font-weight="800" fill="#374151">${numfmt(acc,dec)}</text>`;});
+ g+='</svg>';return g;
+}
+/* 横ランキング棒（政令市比較用・対象ハイライト） */
+function hbar(cfg){
+ const items=cfg.items,n=items.length,dec=cfg.dec!=null?cfg.dec:1;
+ if(!n)return '<div class="note">データ未投入</div>';
+ const W=600,rowH=25,pl=122,pr=60,pt=6,H=pt+n*rowH+8;
+ const vmax=Math.max(...items.map(d=>d.v)),vmin=Math.min(0,...items.map(d=>d.v));
+ const sc=niceScale(vmin,vmax,4);const x=v=>pl+(W-pl-pr)*((v-sc.min)/(sc.max-sc.min));
+ let g=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">`;
+ items.forEach((d,i)=>{const yy=pt+i*rowH,hl=d.hl;
+  g+=`<text x="${pl-6}" y="${yy+16.5}" text-anchor="end" font-size="${hl?12.5:11.5}" font-weight="${hl?800:600}" fill="${hl?'#1c5cab':'#4b5563'}">${d.name}</text>`;
+  g+=`<rect x="${x(Math.min(0,d.v))}" y="${yy+4}" width="${Math.abs(x(d.v)-x(0)).toFixed(1)}" height="${rowH-9}" rx="3" fill="${hl?(cfg.hlColor||'#1c5cab'):'#c7d6ea'}" data-tip="${d.name}: ${numfmt(d.v,dec)}${cfg.unit||''}"/>`;
+  g+=`<text x="${x(Math.max(0,d.v))+4}" y="${yy+16.5}" font-size="11" font-weight="${hl?800:600}" fill="${hl?'#1c5cab':'#6b7280'}">${numfmt(d.v,dec)}</text>`;});
+ g+='</svg>';return g;
+}
+function legend(arr){return '<div class="legend">'+arr.map(a=>`<span><i style="background:${a.color}"></i>${a.name}</span>`).join('')+'</div>';}
+function legendLine(arr){return '<div class="legend">'+arr.map(a=>`<span><i class="ln ${a.dash?'dash':''}" style="border-top-color:${a.color}"></i>${a.name}</span>`).join('')+'</div>';}
+function kpiTile(k){return `<div class="card kpi"><div class="lab">${k.lab}</div><div class="val">${k.val}<small> ${k.unit||''}</small></div><div class="chg">${k.chg||''}</div></div>`;}
+function esc(s){return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+function srcRef(ids){if(!ids||!ids.length)return '';return `<span class="ref">[${ids.map(i=>`<a class="lnk-ref" data-os="${esc(i)}">${esc(i)}</a>`).join(',')}]</span>`;}
+/* ====== タブ・モード機構 ====== */
+
+function chartCard(title,cap,inner,comment,srcIds,cls){
+ return `<div class="card chart-card ${cls||''}"><h3>${title}</h3><div class="cap">${cap||''}</div>${inner}${comment?`<div class="acom">${comment}${srcIds?`<div class="src">出典: ${srcIds}</div>`:''}</div>`:''}</div>`;
+}
+/* ====== 財政タブ v2（期間スライダー＋サブタブ。荒川/豊島ダッシュボードと同型） ====== */
+let FINV={from:0,to:14,sub:'main'};
+
+let FINTAB='ind';
+function renderFin(){
+ const el=document.getElementById('panel-fin'),F=DATA.fin,S=F.series,Y=F.years;
+ if(!Y.length){el.innerHTML='<div class="note">データ投入待ち（財政）</div>';return;}
+ const C1="#2a78d6",C2="#eb6834",C3="#1baf7a",C4="#eda100",CG="#b8bfc9";
+ let h='';
+ if(F.banner)h+=`<div class="banner">${F.banner}</div>`;
+ const FT=[['ind','📊 主要指標の推移'],['rev','💰 歳入の構成'],['exp','🏛 歳出（性質別）'],['fund','🐷 基金・市債残高'],['bud','📅 会計区分（予算）'],['hikaku','🆚 都市比較'],['suikei','🔭 将来推計・健全化']];
+ h+='<div class="ftabs">'+FT.map(t=>`<button class="${FINTAB===t[0]?'on':''}" data-ft="${t[0]}">${t[1]}</button>`).join('')+'</div>';
+ if(FINTAB==='ind'){
+  h+='<div class="grid kpis">'+(F.kpis||[]).map(kpiTile).join('')+'</div>';
+  h+='<h2 class="sec">主要指標の推移（普通会計決算・単位:億円）</h2><div class="grid two">';
+  h+=chartCard('歳入総額・歳出総額の推移','2011〜2024年度・億円',
+   lineChart({years:Y,unit:'億円',series:[{name:'歳入総額',color:C1,data:S['歳入総額']},{name:'歳出総額',color:C2,data:S['歳出総額']}]})+legendLine([{name:'歳入総額',color:C1},{name:'歳出総額',color:C2}]),
+   '<b>2020年度（R2）の急増（歳出+34.2%・歳入+33.4%）はコロナ対応（1人10万円の特別定額給付金等）</b>による一時要因（国庫支出金が3,193→7,730億円に急増）。2021年度に反動減し、直近は歳出2兆円前後で推移。','総務省決算カード・横浜市普通会計決算の概要');
+  h+=chartCard('市税収入の推移','2012〜2024年度・億円（2011年度は出典様式の制約で欠損）',
+   lineChart({years:Y,unit:'億円',series:[{name:'市税',color:C1,data:S['市税']}]}),
+   '<b>2018年度の大幅増（+13.3%）は県費負担教職員の市移管に伴う税源移譲（制度変更）</b>によるもので、景気増収ではない点に注意。直近は3年連続増の8,937億円（R6）。','総務省決算カード・横浜市資料');
+  h+=chartCard('経常収支比率の推移','高いほど財政の硬直化・%・途切れ＝欠損年',
+   lineChart({years:Y,unit:'%',dec:1,series:[{name:'経常収支比率',color:C3,data:S['経常収支比率']}],refs:[{v:100,label:'100%',color:'#e87ba4'}]}),
+   '2019年度101.2%→直近99.0%（R6）と<b>100%近傍の高止まり</b>が続く。6都市比較では大阪89.8＜神戸98.7＜<b>横浜99.0</b>＜川崎99.3＜京都100.4＜名古屋101.2。','総務省決算カード・横浜市 他都市比較資料');
+  h+=chartCard('財政力指数の推移','1に近いほど自前の税収等で賄える（1未満＝普通交付税の交付団体）・途切れ＝欠損年',
+   lineChart({years:Y,unit:'',dec:2,series:[{name:'財政力指数',color:C4,data:S['財政力指数']}]}),
+   '0.94〜0.98の帯で推移し、大都市としては高水準ながら1をやや下回る（普通交付税の交付団体）。','総務省決算カード');
+  h+='</div>';
+ }
+ if(FINTAB==='rev'){
+  const rv=['市税','国庫支出金','市債発行額','地方交付税'].map(k=>S[k]);
+  const sonotaR=Y.map((_,i)=>{if(rv.some(a=>a[i]==null)||S['歳入総額'][i]==null)return null;const t=S['歳入総額'][i]-(rv[0][i]+rv[1][i]+rv[2][i]+rv[3][i]);return Math.round(t*10)/10;});
+  h+='<h2 class="sec">歳入の構成（普通会計決算・単位:億円）</h2><div class="grid two">';
+  h+=chartCard('歳入の内訳（積上げ）','グレー柱＝未転記年度（2011）。※決算カードの主要4項目＋差引であり、款別のフル内訳ではない・億円',
+   stackedBar({years:Y,unit:'億円',items:[
+    {name:'市税',color:C1,data:S['市税'].map(v=>v||0)},
+    {name:'国庫支出金',color:C2,data:S['国庫支出金'].map(v=>v||0)},
+    {name:'市債発行額',color:C3,data:S['市債発行額'].map(v=>v||0)},
+    {name:'地方交付税',color:C4,data:S['地方交付税'].map(v=>v||0)},
+    {name:'その他（差引）',color:CG,data:sonotaR.map(v=>v||0)}]})+legend([{name:'市税',color:C1},{name:'国庫支出金',color:C2},{name:'市債発行額',color:C3},{name:'地方交付税',color:C4},{name:'その他（差引）',color:CG}]),
+   '歳入の柱は<b>市税（R6決算8,937億円・歳入の約43%）</b>。2020年度は特別定額給付金の<b>国庫支出金+142%</b>で構成が一時激変。「その他（差引）」は県支出金・諸収入・繰入金等の合算値。','総務省決算カード');
+  h+=chartCard('市債発行額の推移','フロー（各年度の新規発行）・億円',
+   lineChart({years:Y,unit:'億円',series:[{name:'市債発行額',color:C3,data:S['市債発行額']}]}),
+   '直近は発行抑制が進み2024年度1,096億円まで低下（2013年度の2,771億円への急増は要因が一次資料で未確認）。','総務省決算カード');
+  h+='</div>';
+ }
+ if(FINTAB==='exp'){
+  const sz=['人件費','扶助費','公債費','普通建設事業費'].map(k=>S[k]);
+  const sonota=Y.map((_,i)=>{if(sz.some(a=>a[i]==null))return null;const t=S['歳出総額'][i]-(sz[0][i]+sz[1][i]+sz[2][i]+sz[3][i]);return Math.round(t*10)/10;});
+  h+='<h2 class="sec">歳出（性質別・普通会計決算・単位:億円）</h2><div class="grid two">';
+  h+=chartCard('歳出の性質別内訳（積上げ）','グレー柱＝未転記年度（2011・2015〜19）。「その他」=物件費・補助費・繰出金等の差引計算値・億円',
+   stackedBar({years:Y,unit:'億円',items:[
+    {name:'人件費',color:C1,data:S['人件費'].map(v=>v||0)},
+    {name:'扶助費',color:C2,data:S['扶助費'].map(v=>v||0)},
+    {name:'公債費',color:C3,data:S['公債費'].map(v=>v||0)},
+    {name:'普通建設事業費',color:C4,data:S['普通建設事業費'].map(v=>v||0)},
+    {name:'その他（差引）',color:CG,data:sonota.map(v=>v||0)}]})+legend([{name:'人件費',color:C1},{name:'扶助費',color:C2},{name:'公債費',color:C3},{name:'普通建設事業費',color:C4},{name:'その他（差引）',color:CG}]),
+   '<b>扶助費（社会保障関係）が2012年度3,531億円→2024年度6,215億円（+76%）</b>と最大の構造的押し上げ要因。2021年度の普通建設事業費急増（3,159億円）は道路事業団関連等の一時要因。人件費の2014→2020年度の段差（約+82%）は、2017年度の県費負担教職員の給与負担移管（市税の税源移譲と対になる制度変更）が主因とみられ（※個別内訳は一次未確認）、欠損期間を挟むため段差状に見える点に注意。','総務省決算カード');
+  h+=chartCard('扶助費の推移','社会保障関係経費・億円・途切れ＝未転記年度',
+   lineChart({years:Y,unit:'億円',series:[{name:'扶助費',color:C2,data:S['扶助費']}]}),
+   '高齢化・子育て支援拡充を背景に一貫して増加。歳出に占める割合はR6決算で約31%。','総務省決算カード');
+  h+='</div>';
+ }
+ if(FINTAB==='fund'){
+  h+='<h2 class="sec">基金・市債残高（ストック・単位:億円）</h2><div class="grid two">';
+  h+=chartCard('市債残高（地方債現在高・普通会計）の推移','線の途切れ＝データ未転記（2015〜2019年度）・億円',
+   lineChart({years:Y,unit:'億円',series:[{name:'地方債現在高',color:C2,data:S['地方債現在高']}]}),
+   '残高は2.2〜2.5兆円の帯で推移し、R6末は2兆4,601億円。<b>市の財政ビジョン指標「一般会計が対応する借入金残高」（別定義・全会計ベース）はR6末2兆9,492億円（前年比▲894億円）</b>で、市民1人当たり残高を「R3年度水準（約84万円）に維持」が市の目標。','総務省決算カード・横浜市財政ビジョン');
+  h+=`<div class="card chart-card"><h3>基金残高について（本資料ではグラフ化を見送り）</h3><div class="cap">出典間の定義乖離が大きいため、誤解を避ける目的で数値の記載に留める</div>
+   <div class="acom">・決算カード「積立金現在高」: <b>2023年度末713.5億円・2024年度末710.5億円</b>（総務省様式＝普通会計の枠組み）<br>・市IR資料「基金残高」: <b>2023年度末3,638.8億円</b>（文化基金・みどり基金等を含む広い集計と推察）<br>・財政調整基金（決算カード系列）: <b>2023年度末516.5億円</b>（2024年度末は未取得）<br>→ 集計範囲が異なるため<b>両系列の接続・比較はしない</b>。他都市比較の財政調整基金（🆚タブ）とも定義が異なる点に注意。<div class="src">出典: 総務省決算カード・横浜市IR資料（2024年10月版）</div></div></div>`;
+  h+='</div>';
+ }
+ if(FINTAB==='bud'){
+  const YL=F.yosan.labels;
+  h+='<h2 class="sec">会計区分（当初予算の推移・単位:億円）</h2><div class="grid two">';
+  h+=chartCard('当初予算の会計区分別内訳（積上げ）','H28〜R7年度・当初予算（決算ではない）・億円。合計ラベル＝全会計（四捨五入の関係で公表値と±1億円程度ずれる場合あり）',
+   stackedBar({years:YL,unit:'億円',items:[
+    {name:'一般会計',color:C1,data:F.yosan.values},
+    {name:'特別会計',color:C3,data:F.yosan.tokubetsu},
+    {name:'公営企業会計',color:C4,data:F.yosan.kouei}]})+legend([{name:'一般会計',color:C1},{name:'特別会計',color:C3},{name:'公営企業会計',color:C4}]),
+   '全会計の規模はR7年度で<b>3兆9,881億円</b>（公表値）。一般会計はコロナ対応のR3年度に初めて2兆円台に乗り、以降1.9兆円台で高止まり（R7は1兆9,844億円・+3.6%）。','横浜市 R7年度予算案資料編');
+  h+=chartCard('当初予算 vs 決算（参考比較）','一般会計「当初予算」と普通会計「歳出決算」の併記・億円。※会計ベースが異なるため厳密な執行率比較ではない',
+   lineChart({years:YL,unit:'億円',series:[
+    {name:'一般会計 当初予算',color:C1,data:F.yosan.values},
+    {name:'普通会計 歳出決算',color:C2,data:[S['歳出総額'][5],S['歳出総額'][6],S['歳出総額'][7],S['歳出総額'][8],S['歳出総額'][9],S['歳出総額'][10],S['歳出総額'][11],S['歳出総額'][12],S['歳出総額'][13],null]}]})+legendLine([{name:'一般会計 当初予算',color:C1},{name:'普通会計 歳出決算',color:C2}]),
+   'R2（2020年度）は決算が当初予算を約6,300億円上回る＝<b>年度途中の補正予算（コロナ対応）</b>の規模を示す。R7（2025年度）の決算は未確定。','横浜市予算資料・総務省決算カード');
+  h+='</div>';
+ }
+ if(FINTAB==='hikaku'){
+  h+='<h2 class="sec">都市比較（横浜市財政局公表の大都市比較）</h2><div class="grid two">';
+  h+=chartCard('【6都市比較】経常収支比率（R6/2024年度決算）','低いほど財政に弾力性・%',
+   hbar({items:F.hikakuKeijo,unit:'%',dec:1,hlColor:'#1c5cab'}),
+   '大都市はいずれも95〜101%の高水準で、横浜（99.0%）は6都市中3番目に低い。','横浜市 普通会計決算の概要（他都市比較）');
+  h+=chartCard('【5都市比較】市民1人当たり市債残高（R5/2023年度・万円）','旧5大市比較（川崎市を含まない年次の資料）・万円',
+   hbar({items:F.hikakuPercap,unit:'万円',dec:0,hlColor:'#1c5cab'}),
+   '1人当たりでは横浜61万円と大阪（55）・名古屋（60）に近い水準で、京都（95）・神戸（76）より低い。','横浜市IR資料（2024年10月版）');
+  h+='</div>';
+  h+='<div class="note">※ 政令市20市全体では、実質公債費比率は20市中16位・将来負担比率は15位（いずれも低い方から・R5決算・市公表情報＝一次PDFは要再確認）。</div>';
+ }
+ if(FINTAB==='suikei'){
+  h+='<h2 class="sec">将来推計・健全化指標</h2><div class="grid two">';
+  h+=chartCard('実質公債費比率の推移','借金返済負担の重さ（早期健全化基準25%）・%・途切れ＝欠損年',
+   lineChart({years:Y,unit:'%',dec:1,series:[{name:'実質公債費比率',color:C1,data:S['実質公債費比率']}]}),
+   '2011年度16.3%→R6年度9.2%へ一貫して改善。基準（25%）を大幅に下回る。','決算カード健全化判断比率');
+  h+=chartCard('将来負担比率の推移','将来の負担見込み（早期健全化基準400%）・%・途切れ＝欠損年',
+   lineChart({years:Y,unit:'%',dec:1,series:[{name:'将来負担比率',color:C2,data:S['将来負担比率']}]}),
+   '2012年度200.4%→R6年度114.9%へ大幅改善。ただし政令市内では依然高め（R5決算で20市中15位・低い方から＝市公表情報）。','決算カード健全化判断比率');
+  h+=chartCard('長期財政推計：将来の収支不足額（令和7年12月版）','マイナス＝収支不足（対策を講じない場合の試算）・億円',
+   hbar({items:F.suikei,unit:'億円',dec:0,hlColor:'#eb6834'}),
+   '生産年齢人口減少による市税減・社会保障費増で、<b>2030年度▲308億円→2065年度▲1,663億円</b>の収支不足が拡大する試算。旧推計（R4版: ▲502/▲823/▲1,752億円）より不足幅は縮小した。市公式解説ページ確認・一次PDFは要再確認。','横浜市 長期財政推計');
+  h+=`<div class="card chart-card"><h3>財政ビジョンの目標（令和4年6月策定）</h3><div class="cap">市の中長期の財政規律</div>
+   <div class="acom">・<b>市民1人当たり借入金残高</b>を令和3年度水準（約84万円・実績831,436円）程度に維持する方針<br>・「一般会計が対応する借入金残高」の2040年度目標: <b>3兆1,504億円</b>（R6年度末実績は2兆9,492億円・前年比▲894億円）<br>・目指す財政像: 「安定性」「強靱性」「将来投資能力」の3条件<div class="src">出典: 横浜市 財政ビジョン</div></div></div>`;
+  h+='</div>';
+ }
+ h+=`<div class="note" style="margin-top:12px">${(F.notes||[]).map(esc).join('<br>')}</div>`;
+ el.innerHTML=h;
+}
+function renderAll(){renderFin();bindTips(document.getElementById('panel-fin'));}
+document.addEventListener('click',e=>{const ft=e.target.closest('[data-ft]');if(ft){FINTAB=ft.dataset.ft;renderAll();window.scrollTo(0,0);}});
+document.getElementById('fsbtn').addEventListener('click',()=>{const on=document.body.classList.toggle('fs-big');document.getElementById('fsbtn').textContent=on?'文字標準':'文字大';});
+let _rszT;window.addEventListener('resize',()=>{clearTimeout(_rszT);_rszT=setTimeout(renderAll,200);});
+renderAll();
+</script></body></html>
